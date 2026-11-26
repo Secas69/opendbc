@@ -22,8 +22,13 @@ class CarStateExt:
 
     self.active_touch_points = 0
 
+  def _has_vehicle_bus(self) -> bool:
+    # HAS_VEHICLE_BUS is derived from the fingerprint; the legacy S/X CAN databases have no adas
+    # bus at all, so also require the platform to actually carry one
+    return bool(self.CP_SP.flags & TeslaFlagsSP.HAS_VEHICLE_BUS) and Bus.adas in DBC[self.CP.carFingerprint]
+
   def update(self, ret: structs.CarState, ret_sp: structs.CarStateSP, can_parsers: dict[StrEnum, CANParser]) -> None:
-    if self.CP_SP.flags & TeslaFlagsSP.HAS_VEHICLE_BUS:
+    if self._has_vehicle_bus():
       cp_adas = can_parsers[Bus.adas]
 
       prev_active_touch_points = self.active_touch_points
@@ -70,7 +75,9 @@ class CarStateExt:
   def get_parser(CP: structs.CarParams, CP_SP: structs.CarParamsSP) -> dict[StrEnum, CANParser]:
     messages = {}
 
-    if CP_SP.flags & TeslaFlagsSP.HAS_VEHICLE_BUS:
+    # the legacy S/X CAN databases have no separate adas bus, so the VEHICLE-bus multi-finger
+    # infotainment feature cannot work there - do not create a parser for a bus that does not exist
+    if CP_SP.flags & TeslaFlagsSP.HAS_VEHICLE_BUS and Bus.adas in DBC[CP.carFingerprint]:
       messages[Bus.adas] = CANParser(DBC[CP.carFingerprint][Bus.adas], [], CANBUS.vehicle)
 
     return messages
