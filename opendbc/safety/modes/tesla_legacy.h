@@ -205,6 +205,13 @@ static safety_config tesla_legacy_init(uint16_t param) {
   tesla_hw2 = GET_FLAG(param, TESLA_FLAG_HW2);
   tesla_hw3 = GET_FLAG(param, TESLA_FLAG_HW3);
 
+  // HW1 has no external-panda variant. Clear the flag for HW1 so the steering and longitudinal
+  // checks (which key off tesla_external_panda) stay active and das_control_msg matches the
+  // address that the HW1 tx table actually allows.
+  if (tesla_hw1) {
+    tesla_external_panda = false;
+  }
+
   // Initialize state variables
   tesla_legacy_stock_aeb = false;
   tesla_legacy_stock_lkas = false;

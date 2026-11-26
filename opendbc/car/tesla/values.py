@@ -203,7 +203,8 @@ class CarControllerParams:
 
 
 class TeslaLegacyParams(IntFlag):
-  NO_SDM1 = 1
+  # CarParams.flags bit; TeslaFlags uses 1/2/4, so this must not start at 1
+  NO_SDM1 = 8
 
 
 class TeslaSafetyFlags(IntFlag):

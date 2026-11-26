@@ -44,10 +44,15 @@ class CarStateExt:
 
     cp_ap_party = can_parsers[Bus.ap_party]
 
-    speed_units = self.can_define.dv["DI_state"]["DI_speedUnits"].get(int(cp_party.vl["DI_state"]["DI_speedUnits"]), None)
+    # legacy S/X cars read DI_state from the chassis bus and TESLA_MODEL_S_HW3 uses the Raven DBC,
+    # which has no DI_state at all - so look the signal up defensively in both the define map and
+    # the parser that actually carries it.
+    defines = getattr(self, "can_defines", None) or self.can_define.dv
+    cp_di_state = can_parsers.get(Bus.chassis, cp_party)
     try:
+      speed_units = defines["DI_state"]["DI_speedUnits"].get(int(cp_di_state.vl["DI_state"]["DI_speedUnits"]), None)
       speed_limit = cp_ap_party.vl["DAS_status"]["DAS_fusedSpeedLimit"]
-      if self.can_define.dv["DAS_status"]["DAS_fusedSpeedLimit"].get(int(speed_limit), None) in ["NONE", "UNKNOWN_SNA"]:
+      if defines["DAS_status"]["DAS_fusedSpeedLimit"].get(int(speed_limit), None) in ["NONE", "UNKNOWN_SNA"]:
         ret_sp.speedLimit = 0
       else:
         if speed_units == "KPH":
