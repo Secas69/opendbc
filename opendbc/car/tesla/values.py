@@ -126,7 +126,9 @@ class CAR(Platforms):
 
 
 FW_QUERY_CONFIG = FwQueryConfig(
-  fw_version_regex=br".+,[EYX]\d?[A-Z]*\d{3}\.\d+(?:\.\d+)?",
+  # also covers the legacy S/X firmware strings: <part>-<rev>-<code> with trailing NULs, the short
+  # b"\x10\x00A" / b"\x10#\x81" EPS replies and the raw 0x1131 UDS payload
+  fw_version_regex=br"(?:.+,[EYXS]\d?[A-Z]*\d{3}\.\d+(?:\.\d+)?|\d{7}-\d{2}-[0-9A-Z]{3}\x00{10}|\x10[\x00-\xff]{2}|\x01\x0113[\x00-\xff]{14,15})",
   requests=[
     Request(
       [StdQueries.TESTER_PRESENT_REQUEST, StdQueries.SUPPLIER_SOFTWARE_VERSION_REQUEST],

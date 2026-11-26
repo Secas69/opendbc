@@ -39,6 +39,11 @@ non_tested_cars = [
   # These are on the 2-bit DAS_steeringControlType firmware, which is dashcam only, need new routes
   TESLA.TESLA_MODEL_X,
 
+  # Tesla HW1/HW2 engineering cars only (no fleet routes yet)
+  TESLA.TESLA_MODEL_S,
+  TESLA.TESLA_MODEL_X_HW1,
+  TESLA.TESLA_MODEL_X_HW2,
+
   # port extensions
   HYUNDAI.HYUNDAI_KONA_EV_NON_SCC,
   HYUNDAI.HYUNDAI_BAYON_1ST_GEN_NON_SCC,
@@ -380,6 +385,9 @@ routes = [
 
   CarTestRoute("79d0f04c82980004/00000003--fb0b5d9cfc", TESLA.TESLA_MODEL_3), # HW4 2025
   CarTestRoute("aebd8f1d4ea16066/000002d8--5850d3ea5c", TESLA.TESLA_MODEL_Y), # openpilot longitudinal
+  CarTestRoute("9227f2c54e175788/00000000--650ad7d3e0", TESLA.TESLA_MODEL_S_HW1),  # legacy CAN, HW1
+  CarTestRoute("026a62571e42f996/00000000--75adbce194", TESLA.TESLA_MODEL_S_HW2),  # legacy CAN, HW2
+  CarTestRoute("66c1699b7697267d/00000176--4b6b80db68", TESLA.TESLA_MODEL_S_HW3),  # legacy CAN, HW3
 
   CarTestRoute("5d61e2f6e1f247f3/00000054--d3dfb01b34", MG.MG_5_EV),
 

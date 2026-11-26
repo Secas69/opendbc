@@ -47,12 +47,26 @@ PLATFORM_TO_CAR = {
   b'X': CAR.TESLA_MODEL_X,
 }
 
+# The legacy Model S/X (HW1/HW2/HW3) EPS firmware uses a completely different string format
+# (<part>-<rev>-<code>, short b"\x10.." replies or the raw 0x1131 payload), so it carries no
+# platform letter to cross-check here. Those strings are covered by fw_version_regex instead.
+MODERN_PLATFORMS = set(PLATFORM_TO_CAR.values())
+
+RAW_FW = {
+  b'\x01\x0113\x04\x00\x01\x00\x00\x00\t\x00\x00\x00\x01\x00\x00\xff\xff',
+  b'\x01\x0113\x04\x00\x01\x00\x00\x01\x01\x00\x00\x00\x00\x00\x00\xff\xff',
+}
+
 
 class TestTeslaFingerprint(unittest.TestCase):
   def test_fw_platform_code(self):
     # Every EPS FW must parse and its platform letter must match the car it's filed under.
     for car_model, ecus in FW_VERSIONS.items():
+      if car_model not in MODERN_PLATFORMS:
+        continue
       for fw in ecus.get((Ecu.eps, 0x730, None), []):
+        if fw in RAW_FW:
+          continue
         m = FW_RE.match(fw)
 
         assert m is not None, f"Unparsable FW: {fw}"
