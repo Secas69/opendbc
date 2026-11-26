@@ -47,20 +47,24 @@ class CarStateExt:
     # legacy S/X cars read DI_state from the chassis bus and TESLA_MODEL_S_HW3 uses the Raven DBC,
     # which has no DI_state at all - so look the signal up defensively in both the define map and
     # the parser that actually carries it.
+    # The speed limit signal is called DAS_status on the Model 3/Y CAN database and AutopilotStatus
+    # on the legacy S/X one, and the Raven database carries it in neither - so both the message name
+    # and the DI_state speed unit are looked up defensively.
     defines = getattr(self, "can_defines", None) or self.can_define.dv
     cp_di_state = can_parsers.get(Bus.chassis, cp_party)
-    try:
-      speed_units = defines["DI_state"]["DI_speedUnits"].get(int(cp_di_state.vl["DI_state"]["DI_speedUnits"]), None)
-      speed_limit = cp_ap_party.vl["DAS_status"]["DAS_fusedSpeedLimit"]
-      if defines["DAS_status"]["DAS_fusedSpeedLimit"].get(int(speed_limit), None) in ["NONE", "UNKNOWN_SNA"]:
-        ret_sp.speedLimit = 0
-      else:
-        if speed_units == "KPH":
+    for speed_limit_msg in ("DAS_status", "AutopilotStatus"):
+      try:
+        speed_units = defines["DI_state"]["DI_speedUnits"].get(int(cp_di_state.vl["DI_state"]["DI_speedUnits"]), None)
+        speed_limit = cp_ap_party.vl[speed_limit_msg]["DAS_fusedSpeedLimit"]
+        if defines[speed_limit_msg]["DAS_fusedSpeedLimit"].get(int(speed_limit), None) in ["NONE", "UNKNOWN_SNA"]:
+          ret_sp.speedLimit = 0
+        elif speed_units == "KPH":
           ret_sp.speedLimit = speed_limit * CV.KPH_TO_MS
         elif speed_units == "MPH":
           ret_sp.speedLimit = speed_limit * CV.MPH_TO_MS
-    except (AssertionError, KeyError):
-      pass
+        break
+      except (AssertionError, KeyError):
+        continue
 
   @staticmethod
   def get_parser(CP: structs.CarParams, CP_SP: structs.CarParamsSP) -> dict[StrEnum, CANParser]:
